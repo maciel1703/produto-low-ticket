@@ -18,9 +18,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 Manrope,s
 .aurora{position:fixed;inset:-25%;z-index:-2;background:radial-gradient(38% 38% at 22% 24%,var(--a1),transparent 70%),radial-gradient(42% 42% at 78% 70%,var(--a2),transparent 70%);filter:blur(30px);animation:drift 18s ease-in-out infinite alternate}
 @keyframes drift{to{transform:translate(6%,-5%) rotate(8deg) scale(1.12)}}
 #fx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
-main{position:relative;max-width:760px;margin:0 auto;padding:34px 18px 120px}
+main{position:relative;max-width:760px;margin:0 auto;padding:96px 18px 70px}
 [hidden]{display:none!important}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:center;gap:6px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--glass);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-top:1px solid var(--line)}
+.tabs{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;justify-content:center;gap:6px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:var(--glass);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
 .tabs a{flex:1;max-width:220px;min-height:46px;display:grid;place-items:center;border-radius:14px;color:var(--mut);font:600 14px Manrope,sans-serif;text-decoration:none;transition:background .2s,color .2s,box-shadow .2s}
 .tabs a[aria-current=page]{color:var(--ink);background:var(--a1);box-shadow:inset 0 0 0 1px var(--n1),0 0 18px var(--a1)}
 h1,h2{font-family:Unbounded,Manrope,system-ui,sans-serif;margin:0;line-height:1.08}
