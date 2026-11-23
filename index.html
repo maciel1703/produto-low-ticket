@@ -50,6 +50,8 @@ h3{font:500 16px Unbounded,sans-serif;margin:24px 0 8px}
 .tx{list-style:none;margin:16px 0 0;padding:0}.tx li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 0;border-top:1px solid var(--line)}
 .v{font:500 15px Unbounded,sans-serif;white-space:nowrap}.ac{grid-column:1/-1;display:flex;gap:18px}.dg{color:var(--pk)}
 .hist{display:grid;gap:8px}.hist button{display:flex;justify-content:space-between;gap:8px;min-height:46px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:transparent;color:var(--ink);font:600 14px Manrope,sans-serif;cursor:pointer;text-align:left}.hist button[aria-current=true]{border-color:var(--n1);background:var(--a1)}
+.legend small{display:block;margin-top:2px;font-size:12px}
+.cr{display:grid;grid-template-columns:1fr 128px;gap:8px;padding:14px 0;border-top:1px solid var(--line)}.cr input,.cr select{font-size:16px!important;padding:10px 12px;width:100%}.cr .lm,.cr .cs{grid-column:1/-1}.cr .dg{justify-self:start}
 .bar{position:relative;display:flex;gap:4px;height:58px;margin:20px 0 14px}
 .bar div{border-radius:14px;transition:flex-grow .35s cubic-bezier(.3,1.4,.5,1);min-width:0}
 #bE{background:var(--bl);box-shadow:0 0 26px -2px var(--bl)}#bD{background:var(--pk);box-shadow:0 0 26px -2px var(--pk)}#bF{background:var(--gr);box-shadow:0 0 26px -2px var(--gr)}
@@ -86,6 +88,8 @@ button.link{background:none;border:0;color:var(--n1);font:600 14px Manrope,sans-
 <section id="mapa" aria-labelledby="t1">
 <h2 id="t1">1. Mapa do mês</h2>
 <p class="mut">Divida seu salário em essenciais, desejos e futuro. O 50/30/20 é só o ponto de partida: ajuste ao seu ritmo.</p>
+<div class="mn"><button class="link" id="pm2" aria-label="Mês anterior">‹</button><b id="mlab2"></b><button class="link" id="nm2" aria-label="Próximo mês">›</button></div>
+<p class="mut" id="base"></p>
 <label for="renda">Quanto você recebe por mês? (R$)</label>
 <input id="renda" type="number" inputmode="decimal" min="0" placeholder="3000">
 <label for="ess">Essenciais (moradia, comida, contas): <span id="vEss">50</span>%</label>
@@ -94,11 +98,17 @@ button.link{background:none;border:0;color:var(--n1);font:600 14px Manrope,sans-
 <input id="des" type="range" min="0" max="100" value="30">
 <div class="bar" role="img" aria-label="Divisão do salário"><div id="bE" style="flex-grow:50"></div><div id="bD" style="flex-grow:30"></div><div id="bF" style="flex-grow:20"></div></div>
 <div class="legend">
-<div><span class="dot" style="color:var(--bl);background:var(--bl)"></span>Essenciais<b id="rE">R$ 0</b></div>
-<div><span class="dot" style="color:var(--pk);background:var(--pk)"></span>Desejos<b id="rD">R$ 0</b></div>
+<div><span class="dot" style="color:var(--bl);background:var(--bl)"></span>Essenciais<b id="rE">R$ 0</b><small class="mut" id="sE"></small></div>
+<div><span class="dot" style="color:var(--pk);background:var(--pk)"></span>Desejos<b id="rD">R$ 0</b><small class="mut" id="sD"></small></div>
 <div><span class="dot" style="color:var(--gr);background:var(--gr)"></span>Futuro (<span id="pF">20</span>%)<b id="rF">R$ 0</b></div>
 </div>
 <button class="link" id="reset">Voltar para 50/30/20</button>
+<h3>Categorias de despesa</h3>
+<p class="mut">Defina um limite por categoria (opcional) e acompanhe o saldo. Você pode renomear, trocar o grupo ou excluir. Lançamentos de uma categoria excluída vão para Outros.</p>
+<div id="cl"></div>
+<div class="two"><div><label for="nc">Nova categoria</label><input id="nc" type="text" maxlength="24" placeholder="Ex.: Pets"></div><div><label for="ng">Grupo</label><select id="ng"><option value="e">Essencial</option><option value="d">Desejo</option></select></div></div>
+<p id="ce" class="mut er" role="alert"></p>
+<button class="btn" id="na" type="button">Adicionar categoria</button>
 </section>
 
 <section id="gastos" aria-labelledby="t4">
@@ -153,7 +163,7 @@ const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).sli
 const ymd=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const okDate=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&(d=>!isNaN(d)&&d.toISOString().slice(0,10)===s&&d.getUTCFullYear()>=2000&&d.getUTCFullYear()<=2100)(new Date(s+'T00:00:00Z'));
 const cents=v=>{const n=money(v);return typeof n==='number'&&n>0?Math.round(n*100):null};
-function cleanCats(a){const ok=Array.isArray(a)?a.filter(k=>k&&typeof k.id==='string'&&/^[a-z0-9_]{1,20}$/.test(k.id)&&typeof k.n==='string'&&k.n.trim()&&k.n.length<=24&&(k.t==='d'||k.t==='r')&&(k.g==='e'||k.g==='d')).map(k=>({id:k.id,n:k.n.trim(),t:k.t,g:k.g})):[];return ok.some(k=>k.id==='outros')&&ok.some(k=>k.id==='outrasr')?ok:CATS.map(k=>({...k}))}
+function cleanCats(a){const ok=Array.isArray(a)?a.filter(k=>k&&typeof k.id==='string'&&/^[a-z0-9_]{1,20}$/.test(k.id)&&typeof k.n==='string'&&k.n.trim()&&k.n.length<=24&&(k.t==='d'||k.t==='r')&&(k.g==='e'||k.g==='d')).slice(0,40).filter((k,i,a)=>a.findIndex(z=>z.id===k.id)===i).map(k=>({id:k.id,n:k.n.trim(),t:k.t,g:k.g,...(Number.isInteger(k.b)&&k.b>0&&k.b<=1e11?{b:k.b}:{})})):[];return ok.some(k=>k.id==='outros')&&ok.some(k=>k.id==='outrasr')?ok:CATS.map(k=>({...k}))}
 function cleanTx(a,cats){if(!Array.isArray(a))return[];const ids=new Set(),out=[];for(const x of a){if(out.length>=5000||!x||typeof x!=='object')continue;const t=x.t==='r'?'r':x.t==='d'?'d':null,v=Number(x.v);if(!t||!Number.isInteger(v)||v<1||v>1e11||!okDate(x.d))continue;const id=typeof x.id==='string'&&/^[a-z0-9]{4,20}$/.test(x.id)&&!ids.has(x.id)?x.id:uid();ids.add(id);out.push({id,t,v,c:cats.some(k=>k.id===x.c&&k.t===t)?x.c:(t==='d'?'outros':'outrasr'),d:x.d,n:String(x.n==null?'':x.n).slice(0,60)})}return out}
 function sanitize(o){o=o&&typeof o==='object'?o:{};const m=k=>{const x=money(o[k]);return x===null?'':x};
 const ess=int(o.ess,0,100,50),des=Math.min(int(o.des,0,100,30),100-ess);
@@ -165,7 +175,7 @@ try{const o=JSON.parse(raw);if(o.v!==V){const bk='dnm_bak_v'+(Number(o.v)||1);tr
 let S=load();
 const setv=(el,v)=>{if(document.activeElement!==el)el.value=v};
 const save=()=>{try{localStorage.setItem('dnm',JSON.stringify(S))}catch(e){}};
-function map(){const r=+S.renda||0,e=+S.ess,d=Math.min(+S.des,100-e),f=100-e-d;S.des=d;
+function map(){const T0=totals(YM),r=T0.r>0?T0.r/100:(+S.renda||0),e=+S.ess,d=Math.min(+S.des,100-e),f=100-e-d;S.des=d;
 setv($('renda'),S.renda);setv($('ess'),e);setv($('des'),d);$('vEss').textContent=e;$('vDes').textContent=d;$('pF').textContent=f;
 $('bE').style.flexGrow=e;$('bD').style.flexGrow=d;$('bF').style.flexGrow=f;
 num($('rE'),r*e/100);num($('rD'),r*d/100);num($('rF'),r*f/100)}
@@ -180,10 +190,10 @@ const on=(id,k,f)=>$(id).addEventListener('input',e=>{const el=e.target;let v;
 if(['renda','gasto','guardo'].includes(k)){v=money(el.value);flag(el,v===null);if(v===null)v=''}
 else v=int(el.value,k==='meses'?3:0,k==='meses'?12:100,S[k]);
 S[k]=v;save();f()});
-on('renda','renda',map);on('ess','ess',map);on('des','des',map);on('gasto','gasto',res);on('guardo','guardo',res);on('meses','meses',res);
-$('reset').onclick=()=>{S.ess=50;S.des=30;save();map()};
+on('renda','renda',mapa2);on('ess','ess',mapa2);on('des','des',mapa2);on('gasto','gasto',res);on('guardo','guardo',res);on('meses','meses',res);
+$('reset').onclick=()=>{S.ess=50;S.des=30;save();mapa2()};
 document.querySelectorAll('section').forEach(s=>s.addEventListener('pointermove',e=>{const r=s.getBoundingClientRect();s.style.setProperty('--mx',e.clientX-r.left+'px');s.style.setProperty('--my',e.clientY-r.top+'px')}));
-map();coins();res();
+coins();res();
 const MN=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const RC=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const ymL=y=>MN[+y.slice(5)-1]+' de '+y.slice(0,4);
@@ -203,7 +213,7 @@ ed.onclick=()=>{ED=x.id;DEL=null;setType(x.t);$('fv').value=(x.v/100).toFixed(2)
 de.onclick=()=>{if(DEL===x.id){S.tx=S.tx.filter(z=>z.id!==x.id);DEL=null;if(ED===x.id)resetForm();save();gastos()}else{DEL=x.id;gastos();setTimeout(()=>{if(DEL===x.id){DEL=null;gastos()}},4000)}};
 ac.append(ed,de);li.append(l,mk('span','v '+(x.t==='r'?'pos':'neg'),(x.t==='r'?'+ ':'− ')+RC(x.v)),ac);ul.appendChild(li)});
 const H=$('hist');H.textContent='';const ms=[...new Set(S.tx.map(x=>x.d.slice(0,7)))].sort().reverse();if(!ms.length)H.appendChild(mk('p','mut','O histórico aparece quando houver lançamentos.'));
-ms.forEach(m=>{const b=mk('button'),t=totals(m);b.type='button';b.append(mk('span',0,ymL(m)),mk('span',t.s<0?'neg':'pos',RC(t.s)));if(m===YM)b.setAttribute('aria-current','true');b.onclick=()=>{YM=m;gastos()};H.appendChild(b)})}
+ms.forEach(m=>{const b=mk('button'),t=totals(m);b.type='button';b.append(mk('span',0,ymL(m)),mk('span',t.s<0?'neg':'pos',RC(t.s)));if(m===YM)b.setAttribute('aria-current','true');b.onclick=()=>{YM=m;gastos()};H.appendChild(b)});mapa2()}
 $('tD').onclick=()=>setType('d');$('tR').onclick=()=>setType('r');$('fcan').onclick=resetForm;
 $('pm').onclick=()=>{YM=shift(YM,-1);gastos()};$('nm').onclick=()=>{YM=shift(YM,1);gastos()};
 $('fv').addEventListener('input',()=>{$('fv').removeAttribute('aria-invalid');$('fe').textContent=''});
@@ -213,6 +223,31 @@ if(!okDate(d)){er.textContent='Escolha uma data válida entre 2000 e 2100.';retu
 if(!S.cats.some(k=>k.id===c&&k.t===TY)){er.textContent='Escolha uma categoria.';return}
 if(ED){const x=S.tx.find(z=>z.id===ED);if(x)Object.assign(x,{t:TY,v,c,d,n})}else S.tx.push({id:uid(),t:TY,v,c,d,n});
 YM=d.slice(0,7);resetForm();save();gastos()});
+let DELC=null;
+const catSave=()=>{save();setType(TY);gastos()};
+function mapa2(){const T=totals(YM),bc=T.r>0?T.r:Math.round((+S.renda||0)*100);$('mlab2').textContent=ymL(YM);
+$('base').textContent=T.r>0?'Base do mês: receitas lançadas ('+RC(T.r)+'). O campo de renda só vale quando não há receitas lançadas.':(+S.renda?'Base do mês: a renda informada abaixo. Lance receitas na aba Gastos para usar valores reais.':'Informe sua renda ou lance receitas na aba Gastos.');
+map();const sp={e:0,d:0},byc={};
+mon(YM).forEach(x=>{if(x.t==='d'){byc[x.c]=(byc[x.c]||0)+x.v;const k=S.cats.find(c=>c.id===x.c);sp[k?k.g:'d']+=x.v}});
+[['e',S.ess,'sE'],['d',S.des,'sD']].forEach(([g,p,id])=>{const left=Math.round(bc*p/100)-sp[g],s=$(id);s.textContent='Gasto '+RC(sp[g])+(bc?' · '+(left<0?'estourou '+RC(-left):'disponível '+RC(left)):'');s.className='mut '+(bc&&left<0?'neg':'')});
+const cl=$('cl');cl.textContent='';
+S.cats.filter(c=>c.t==='d').forEach(c=>{const g=byc[c.id]||0,row=mk('div','cr'),nm=mk('input'),gs=mk('select'),lm=mk('input','lm'),st=mk('div','cs mut'),over=c.b&&g>c.b;
+nm.type='text';nm.maxLength=24;nm.value=c.n;nm.setAttribute('aria-label','Nome da categoria '+c.n);
+nm.onchange=()=>{const v=nm.value.trim(),er=$('ce');if(!v||v.length>24||S.cats.some(k=>k.t==='d'&&k.id!==c.id&&k.n.toLowerCase()===v.toLowerCase())){er.textContent=!v?'Digite um nome.':v.length>24?'Máximo de 24 caracteres.':'Já existe uma categoria com esse nome.';nm.value=c.n;return}er.textContent='';c.n=v;catSave()};
+[['e','Essencial'],['d','Desejo']].forEach(([v,t])=>{const o=mk('option',0,t);o.value=v;gs.appendChild(o)});gs.value=c.g;gs.setAttribute('aria-label','Grupo de '+c.n);gs.onchange=()=>{c.g=gs.value;catSave()};
+lm.type='number';lm.step='0.01';lm.min='0';lm.inputMode='decimal';lm.placeholder='Limite mensal (opcional)';lm.value=c.b?(c.b/100).toFixed(2):'';lm.setAttribute('aria-label','Limite mensal de '+c.n);
+lm.onchange=()=>{const er=$('ce');if(lm.value===''){delete c.b;er.textContent='';catSave();return}const v=cents(lm.value);if(v===null){er.textContent='Digite um limite maior que zero ou deixe vazio.';lm.value=c.b?(c.b/100).toFixed(2):'';return}er.textContent='';c.b=v;catSave()};
+st.textContent='Gasto '+RC(g)+(c.b?' · '+(over?'estourou '+RC(g-c.b):'saldo '+RC(c.b-g)):'');if(over)st.classList.add('neg');
+row.append(nm,gs,lm,st);
+if(c.id!=='outros'){const de=mk('button','link dg',DELC===c.id?'Confirmar exclusão':'Excluir categoria');de.type='button';
+de.onclick=()=>{if(DELC===c.id){S.tx.forEach(x=>{if(x.c===c.id)x.c='outros'});S.cats=S.cats.filter(k=>k.id!==c.id);DELC=null;catSave()}else{DELC=c.id;mapa2();setTimeout(()=>{if(DELC===c.id){DELC=null;mapa2()}},4000)}};row.appendChild(de)}
+cl.appendChild(row)})}
+$('pm2').onclick=()=>{YM=shift(YM,-1);gastos()};$('nm2').onclick=()=>{YM=shift(YM,1);gastos()};
+$('na').onclick=()=>{const v=$('nc').value.trim(),er=$('ce');
+if(!v||v.length>24){er.textContent=!v?'Digite um nome.':'Máximo de 24 caracteres.';return}
+if(S.cats.some(k=>k.t==='d'&&k.n.toLowerCase()===v.toLowerCase())){er.textContent='Já existe uma categoria com esse nome.';return}
+if(S.cats.filter(k=>k.t==='d').length>=20){er.textContent='Limite de 20 categorias de despesa.';return}
+S.cats.push({id:'c'+uid().slice(0,10),n:v,t:'d',g:$('ng').value==='e'?'e':'d'});$('nc').value='';er.textContent='';catSave()};
 setType('d');resetForm();gastos();
 const TABS=['mapa','gastos','desafio','reserva'];
 function tab(){const h=location.hash.slice(1),t=TABS.includes(h)?h:'mapa';TABS.forEach(n=>{$(n).hidden=n!==t});document.querySelectorAll('.tabs a').forEach(a=>{a.getAttribute('href')==='#'+t?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current')})}
