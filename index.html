@@ -35,6 +35,7 @@ input[type=number]{width:100%;font:600 22px Manrope,sans-serif;padding:12px 14px
 input[type=number]:focus{border-color:var(--n1);box-shadow:0 0 0 4px var(--a1),0 0 24px var(--a1)}
 input:focus-visible,button:focus-visible{outline:3px solid var(--n1);outline-offset:3px}
 input[type=range]{width:100%;accent-color:var(--n1)}
+input[aria-invalid=true]{border-color:var(--pk)}.er{color:var(--pk);margin:6px 0 0}
 .bar{position:relative;display:flex;gap:4px;height:58px;margin:20px 0 14px}
 .bar div{border-radius:14px;transition:flex-grow .35s cubic-bezier(.3,1.4,.5,1);min-width:0}
 #bE{background:var(--bl);box-shadow:0 0 26px -2px var(--bl)}#bD{background:var(--pk);box-shadow:0 0 26px -2px var(--pk)}#bF{background:var(--gr);box-shadow:0 0 26px -2px var(--gr)}
@@ -113,20 +114,34 @@ button.link{background:none;border:0;color:var(--n1);font:600 14px Manrope,sans-
 <script>
 const $=id=>document.getElementById(id),RM=matchMedia('(prefers-reduced-motion:reduce)').matches,R=v=>Math.round(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
 function num(el,to){const f=el._v||0;el._v=to;if(RM||f===to){el.textContent=R(to);return}const t0=performance.now();(function s(t){const k=Math.min(1,(t-t0)/450),e=1-Math.pow(1-k,3);el.textContent=R(f+(to-f)*e);if(k<1)requestAnimationFrame(s)})(t0)}
-let S={renda:'',ess:50,des:30,days:[],gasto:'',guardo:'',meses:6};
-try{const s=localStorage.getItem('dnm');if(s)S=Object.assign(S,JSON.parse(s))}catch(e){}
+const V=2,MAXV=1e9,DEF={v:V,renda:'',ess:50,des:30,days:[],gasto:'',guardo:'',meses:6};
+const money=v=>{if(v===''||v==null)return'';const n=typeof v==='number'?v:Number(String(v).replace(',','.'));return Number.isFinite(n)&&n>=0&&n<=MAXV?Math.round(n*100)/100:null};
+const int=(v,a,b,d)=>{const n=Math.round(Number(v));return Number.isFinite(n)?Math.min(b,Math.max(a,n)):d};
+function sanitize(o){o=o&&typeof o==='object'?o:{};const m=k=>{const x=money(o[k]);return x===null?'':x};
+const ess=int(o.ess,0,100,50),des=Math.min(int(o.des,0,100,30),100-ess);
+const days=[...new Set((Array.isArray(o.days)?o.days:[]).map(Number).filter(d=>Number.isInteger(d)&&d>=1&&d<=30))].sort((a,b)=>a-b);
+return{v:V,renda:m('renda'),ess,des,days,gasto:m('gasto'),guardo:m('guardo'),meses:int(o.meses,3,12,6)}}
+function load(){let raw=null;try{raw=localStorage.getItem('dnm')}catch(e){}
+if(!raw)return sanitize(DEF);
+try{const o=JSON.parse(raw);if(o.v!==V){try{localStorage.setItem('dnm_bak_v1',raw)}catch(e){}}return sanitize(o)}catch(e){try{localStorage.setItem('dnm_bak_corrompido',raw)}catch(_){}return sanitize(DEF)}}
+let S=load();
+const setv=(el,v)=>{if(document.activeElement!==el)el.value=v};
 const save=()=>{try{localStorage.setItem('dnm',JSON.stringify(S))}catch(e){}};
 function map(){const r=+S.renda||0,e=+S.ess,d=Math.min(+S.des,100-e),f=100-e-d;S.des=d;
-$('renda').value=S.renda;$('ess').value=e;$('des').value=d;$('vEss').textContent=e;$('vDes').textContent=d;$('pF').textContent=f;
+setv($('renda'),S.renda);setv($('ess'),e);setv($('des'),d);$('vEss').textContent=e;$('vDes').textContent=d;$('pF').textContent=f;
 $('bE').style.flexGrow=e;$('bD').style.flexGrow=d;$('bF').style.flexGrow=f;
 num($('rE'),r*e/100);num($('rD'),r*d/100);num($('rF'),r*f/100)}
 function coins(){const g=$('grid');if(!g.children.length)for(let i=1;i<=30;i++){const b=document.createElement('button');b.textContent=i;b.setAttribute('aria-label','Dia '+i+', R$ '+i);b.onclick=()=>{const k=S.days.indexOf(i);k<0?S.days.push(i):S.days.splice(k,1);save();coins()};g.appendChild(b)}
 [...g.children].forEach((b,i)=>b.setAttribute('aria-pressed',S.days.includes(i+1)));
 const t=S.days.reduce((a,b)=>a+b,0),p=t/465;num($('saved'),t);$('rg').style.strokeDashoffset=377*(1-p);$('pc').textContent=Math.round(p*100)+'%';
 $('left').textContent=t>=465?'Meta batida. Parabéns!':'Faltam '+R(465-t)+'.'}
-function res(){const g=+S.gasto||0,m=+S.guardo||0,meta=g*S.meses;$('vMes').textContent=S.meses;$('meses').value=S.meses;$('gasto').value=S.gasto;$('guardo').value=S.guardo;num($('meta'),meta);
+function res(){const g=+S.gasto||0,m=+S.guardo||0,meta=g*S.meses;$('vMes').textContent=S.meses;setv($('meses'),S.meses);setv($('gasto'),S.gasto);setv($('guardo'),S.guardo);num($('meta'),meta);
 const p=$('prazo');if(!g)p.textContent='Digite seu gasto essencial para calcular.';else if(!m)p.textContent='Digite quanto consegue guardar por mês.';else{const n=Math.ceil(meta/m);p.textContent='Guardando '+R(m)+' por mês, você chega lá em '+n+(n===1?' mês':' meses')+(n>=12?' (cerca de '+(n/12).toFixed(1).replace('.',',')+' anos).':'.')}}
-const on=(id,k,f)=>$(id).addEventListener('input',e=>{S[k]=e.target.value;save();f()});
+const flag=(el,bad)=>{el.setAttribute('aria-invalid',bad);let m=el._m;if(!m){m=el._m=document.createElement('p');m.className='mut er';m.setAttribute('role','alert');el.after(m)}m.textContent=bad?'Digite um valor entre 0 e 1.000.000.000.':''};
+const on=(id,k,f)=>$(id).addEventListener('input',e=>{const el=e.target;let v;
+if(['renda','gasto','guardo'].includes(k)){v=money(el.value);flag(el,v===null);if(v===null)v=''}
+else v=int(el.value,k==='meses'?3:0,k==='meses'?12:100,S[k]);
+S[k]=v;save();f()});
 on('renda','renda',map);on('ess','ess',map);on('des','des',map);on('gasto','gasto',res);on('guardo','guardo',res);on('meses','meses',res);
 $('reset').onclick=()=>{S.ess=50;S.des=30;save();map()};
 document.querySelectorAll('section').forEach(s=>s.addEventListener('pointermove',e=>{const r=s.getBoundingClientRect();s.style.setProperty('--mx',e.clientX-r.left+'px');s.style.setProperty('--my',e.clientY-r.top+'px')}));
