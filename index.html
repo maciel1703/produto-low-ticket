@@ -20,8 +20,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 Manrope,s
 #fx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
 main{position:relative;max-width:760px;margin:0 auto;padding:96px 18px 70px}
 [hidden]{display:none!important}
-.tabs{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;justify-content:center;gap:6px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:var(--glass);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
-.tabs a{flex:1;max-width:220px;min-height:46px;display:grid;place-items:center;border-radius:14px;color:var(--mut);font:600 14px Manrope,sans-serif;text-decoration:none;transition:background .2s,color .2s,box-shadow .2s}
+.tabs{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;justify-content:center;gap:4px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:var(--glass);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.tabs a{flex:1;max-width:220px;min-height:46px;display:grid;place-items:center;border-radius:14px;color:var(--mut);font:600 13px Manrope,sans-serif;text-decoration:none;transition:background .2s,color .2s,box-shadow .2s}
 .tabs a[aria-current=page]{color:var(--ink);background:var(--a1);box-shadow:inset 0 0 0 1px var(--n1),0 0 18px var(--a1)}
 h1,h2{font-family:Unbounded,Manrope,system-ui,sans-serif;margin:0;line-height:1.08}
 h1{font-size:clamp(34px,8.4vw,62px);font-weight:800;letter-spacing:-.03em;background:linear-gradient(100deg,var(--n1),var(--n2),var(--pk),var(--n1));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 7s linear infinite}
@@ -75,6 +75,20 @@ h3{font:500 16px Unbounded,sans-serif;margin:24px 0 8px}
 .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-top:12px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 button.link{background:none;border:0;color:var(--n1);font:600 14px Manrope,sans-serif;cursor:pointer;padding:8px 0}
+.two.one{grid-template-columns:1fr}
+.hb{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:baseline;margin:10px 0;font-size:14px}
+.hb .lb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb .vv{font:500 12px Unbounded,sans-serif;white-space:nowrap}
+.hb .tr{grid-column:1/-1;height:14px;border-radius:8px;background:var(--line);overflow:hidden}
+.hb .fl{height:100%;border-radius:8px;transition:width .35s}
+.rs p{margin:0 0 8px}
+.mc{display:flex;align-items:stretch;gap:8px;height:150px;margin-top:10px}
+.mc .col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.mc .pr{width:100%;display:flex;align-items:flex-end;gap:3px}
+.mc .pr i{flex:1;display:block;min-height:2px;border-radius:6px 6px 2px 2px}
+.mc .pr i.r{background:var(--gr)}.mc .pr i.d{background:var(--pk)}
+.mc .col span{font-size:12px;color:var(--mut)}.mc .col.cur span{color:var(--ink);font-weight:600}
+input[type=file]{width:100%;font:600 15px Manrope,sans-serif;color:var(--ink);padding:10px 0}
 @media(max-width:480px){.legend,.two{grid-template-columns:1fr}.grid{grid-template-columns:repeat(6,1fr)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
@@ -84,6 +98,8 @@ button.link{background:none;border:0;color:var(--n1);font:600 14px Manrope,sans-
 <main>
 <h1>Dinheiro na Mão</h1>
 <p class="sub">Três ferramentas para organizar seu mês em 10 minutos. Digite seus números e veja o resultado na hora.</p>
+
+<p id="av" class="er" role="alert" hidden>Não foi possível salvar neste navegador (modo privado ou armazenamento cheio). Seus dados podem se perder ao fechar. Use a aba Backup para exportar uma cópia.</p>
 
 <section id="mapa" aria-labelledby="t1">
 <h2 id="t1">1. Mapa do mês</h2>
@@ -115,6 +131,7 @@ button.link{background:none;border:0;color:var(--n1);font:600 14px Manrope,sans-
 <h2 id="t4">Controle de gastos</h2>
 <div class="mn"><button class="link" id="pm" aria-label="Mês anterior">‹</button><b id="mlab"></b><button class="link" id="nm" aria-label="Próximo mês">›</button></div>
 <div class="legend"><div>Receitas<b id="gR">R$ 0</b></div><div>Despesas<b id="gD">R$ 0</b></div><div>Saldo<b id="gS">R$ 0</b></div></div>
+<div class="pn" id="pn"></div>
 <form id="f" novalidate>
 <div class="seg" role="group" aria-label="Tipo"><button type="button" id="tD" aria-pressed="true">Despesa</button><button type="button" id="tR" aria-pressed="false">Receita</button></div>
 <label for="fv">Valor (R$)</label><input id="fv" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
@@ -133,26 +150,40 @@ button.link{background:none;border:0;color:var(--n1);font:600 14px Manrope,sans-
 <p class="mut">No dia 1 guarde R$ 1, no dia 2 guarde R$ 2, e assim por diante. Toque no dia em que guardou.</p>
 <div class="ch">
 <div class="ring"><svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="gr"><stop offset="0" style="stop-color:var(--n1)"/><stop offset="1" style="stop-color:var(--n2)"/></linearGradient></defs><circle class="rt" cx="70" cy="70" r="60"/><circle class="rf" id="rg" cx="70" cy="70" r="60"/></svg><span id="pc">0%</span></div>
-<div><p class="mut" style="margin:0">Guardado</p><div class="big" id="saved">R$ 0</div><p class="mut" style="margin:6px 0 0">Meta: R$ 465 em 30 dias. <span id="left"></span></p></div>
-<div class="grid" id="grid"></div>
+<div><p class="mut" style="margin:0">Guardado</p><div class="big" id="saved">R$ 0</div><p class="mut" style="margin:6px 0 0" aria-live="polite">Meta: R$ 465 em 30 dias. <span id="left"></span></p></div>
+<div class="grid" id="grid" role="group" aria-label="Dias do desafio"></div>
 </div>
+<button class="link dg" id="cr" type="button" hidden>Limpar desafio</button>
 </section>
 
 <section id="reserva" aria-labelledby="t3">
 <h2 id="t3">3. Quanto falta para sua reserva?</h2>
-<p class="mut">A reserva de emergência costuma ser de 3 a 6 meses dos seus gastos essenciais.</p>
-<div class="two">
-<div><label for="gasto">Gasto essencial por mês (R$)</label><input id="gasto" type="number" inputmode="decimal" min="0" placeholder="1500"></div>
+<p class="mut">A reserva de emergência costuma ser de 3 a 6 meses dos seus gastos essenciais. Escolha 3, 6 ou 12 meses.</p>
+<p class="mut" id="rinfo"></p>
+<div class="two" id="rw">
+<div id="gw"><label for="gasto">Gasto essencial por mês (R$)</label><input id="gasto" type="number" inputmode="decimal" min="0" placeholder="1500"></div>
 <div><label for="guardo">Quanto guarda por mês (R$)</label><input id="guardo" type="number" inputmode="decimal" min="0" placeholder="300"></div>
 </div>
-<label for="meses">Quantos meses de reserva? <span id="vMes">6</span></label>
-<input id="meses" type="range" min="3" max="12" value="6">
+<p id="lm" style="margin:16px 0 0;font-weight:600">Quantos meses de reserva?</p>
+<div class="seg" id="mseg" role="group" aria-labelledby="lm"><button type="button" data-m="3">3 meses</button><button type="button" data-m="6">6 meses</button><button type="button" data-m="12">12 meses</button></div>
 <div class="row"><span>Meta da reserva</span><span class="big" id="meta">R$ 0</span></div>
 <p id="prazo" class="mut"></p>
 </section>
+<section id="backup" aria-labelledby="t5">
+<h2 id="t5">Backup dos dados</h2>
+<p class="mut">Seus dados ficam só neste aparelho e neste navegador. Exporte um arquivo para guardar uma cópia ou levar para outro aparelho.</p>
+<button class="btn" id="bx" type="button">Exportar backup</button>
+<h3>Importar backup</h3>
+<p class="mut">Importar substitui os dados atuais. Antes disso, uma cópia de segurança automática é guardada neste navegador.</p>
+<label for="bi">Arquivo de backup (.json)</label>
+<input id="bi" type="file" accept="application/json,.json">
+<p id="bm" class="mut" role="status"></p>
+<button class="btn" id="bc" type="button" hidden>Substituir meus dados</button>
+<button class="btn ghost" id="bn" type="button" hidden>Cancelar</button>
+</section>
 <p class="mut">Ferramenta educativa, não é aconselhamento financeiro.</p>
 </main>
-<nav class="tabs" aria-label="Seções"><a href="#mapa">Mapa</a><a href="#gastos">Gastos</a><a href="#desafio">Desafio</a><a href="#reserva">Reserva</a></nav>
+<nav class="tabs" aria-label="Seções"><a href="#mapa">Mapa</a><a href="#gastos">Gastos</a><a href="#desafio">Desafio</a><a href="#reserva">Reserva</a><a href="#backup">Backup</a></nav>
 <script>
 const $=id=>document.getElementById(id),RM=matchMedia('(prefers-reduced-motion:reduce)').matches,R=v=>Math.round(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
 function num(el,to){const f=el._v||0;el._v=to;if(RM||f===to){el.textContent=R(to);return}const t0=performance.now();(function s(t){const k=Math.min(1,(t-t0)/450),e=1-Math.pow(1-k,3);el.textContent=R(f+(to-f)*e);if(k<1)requestAnimationFrame(s)})(t0)}
@@ -168,32 +199,34 @@ function cleanTx(a,cats){if(!Array.isArray(a))return[];const ids=new Set(),out=[
 function sanitize(o){o=o&&typeof o==='object'?o:{};const m=k=>{const x=money(o[k]);return x===null?'':x};
 const ess=int(o.ess,0,100,50),des=Math.min(int(o.des,0,100,30),100-ess);
 const days=[...new Set((Array.isArray(o.days)?o.days:[]).map(Number).filter(d=>Number.isInteger(d)&&d>=1&&d<=30))].sort((a,b)=>a-b);
-const cats=cleanCats(o.cats);return{v:V,renda:m('renda'),ess,des,days,gasto:m('gasto'),guardo:m('guardo'),meses:int(o.meses,3,12,6),tx:cleanTx(o.tx,cats),cats}}
+const cats=cleanCats(o.cats);return{v:V,renda:m('renda'),ess,des,days,gasto:m('gasto'),guardo:m('guardo'),meses:(q=>q<=4?3:q<=9?6:12)(int(o.meses,3,12,6)),tx:cleanTx(o.tx,cats),cats}}
 function load(){let raw=null;try{raw=localStorage.getItem('dnm')}catch(e){}
 if(!raw)return sanitize(DEF);
 try{const o=JSON.parse(raw);if(o.v!==V){const bk='dnm_bak_v'+(Number(o.v)||1);try{if(localStorage.getItem(bk)==null)localStorage.setItem(bk,raw)}catch(e){}}return sanitize(o)}catch(e){try{localStorage.setItem('dnm_bak_corrompido',raw)}catch(_){}return sanitize(DEF)}}
-let S=load();
+let S=load(),CONF=false,PEND=null;
 const setv=(el,v)=>{if(document.activeElement!==el)el.value=v};
-const save=()=>{try{localStorage.setItem('dnm',JSON.stringify(S))}catch(e){}};
+const save=()=>{try{localStorage.setItem('dnm',JSON.stringify(S));$('av').hidden=true}catch(e){$('av').hidden=false}};
 function map(){const T0=totals(YM),r=T0.r>0?T0.r/100:(+S.renda||0),e=+S.ess,d=Math.min(+S.des,100-e),f=100-e-d;S.des=d;
 setv($('renda'),S.renda);setv($('ess'),e);setv($('des'),d);$('vEss').textContent=e;$('vDes').textContent=d;$('pF').textContent=f;
 $('bE').style.flexGrow=e;$('bD').style.flexGrow=d;$('bF').style.flexGrow=f;
 num($('rE'),r*e/100);num($('rD'),r*d/100);num($('rF'),r*f/100)}
 function coins(){const g=$('grid');if(!g.children.length)for(let i=1;i<=30;i++){const b=document.createElement('button');b.textContent=i;b.setAttribute('aria-label','Dia '+i+', R$ '+i);b.onclick=()=>{const k=S.days.indexOf(i);k<0?S.days.push(i):S.days.splice(k,1);save();coins()};g.appendChild(b)}
-[...g.children].forEach((b,i)=>b.setAttribute('aria-pressed',S.days.includes(i+1)));
+[...g.children].forEach((b,i)=>{const sv=S.days.includes(i+1);b.setAttribute('aria-pressed',sv);b.setAttribute('aria-label','Dia '+(i+1)+', R$ '+(i+1)+', '+(sv?'guardado':'não guardado'))});
 const t=S.days.reduce((a,b)=>a+b,0),p=t/465;num($('saved'),t);$('rg').style.strokeDashoffset=377*(1-p);$('pc').textContent=Math.round(p*100)+'%';
-$('left').textContent=t>=465?'Meta batida. Parabéns!':'Faltam '+R(465-t)+'.'}
-function res(){const g=+S.gasto||0,m=+S.guardo||0,meta=g*S.meses;$('vMes').textContent=S.meses;setv($('meses'),S.meses);setv($('gasto'),S.gasto);setv($('guardo'),S.guardo);num($('meta'),meta);
-const p=$('prazo');if(!g)p.textContent='Digite seu gasto essencial para calcular.';else if(!m)p.textContent='Digite quanto consegue guardar por mês.';else{const n=Math.ceil(meta/m);p.textContent='Guardando '+R(m)+' por mês, você chega lá em '+n+(n===1?' mês':' meses')+(n>=12?' (cerca de '+(n/12).toFixed(1).replace('.',',')+' anos).':'.')}}
+$('left').textContent=t>=465?'Meta batida. Parabéns!':'Faltam '+R(465-t)+'.';const cb=$('cr');cb.hidden=!S.days.length;cb.textContent=CONF?'Confirmar limpeza':'Limpar desafio'}
+function realEss(){const cur=ymd().slice(0,7),by={};S.tx.forEach(x=>{const m=x.d.slice(0,7);if(x.t!=='d'||m>cur)return;const k=S.cats.find(c=>c.id===x.c);if((k?k.g:'d')==='e')by[m]=(by[m]||0)+x.v});const ms=Object.keys(by).sort().reverse(),full=ms.filter(m=>m<cur).slice(0,3);if(full.length)return{v:Math.round(full.reduce((a,m)=>a+by[m],0)/full.length),txt:full.length===1?'último mês com despesas essenciais lançadas':'média dos últimos '+full.length+' meses com despesas essenciais lançadas'};if(by[cur])return{v:by[cur],txt:'só o mês atual, que ainda não terminou'};return null}
+function res(){const re=realEss(),g=re?re.v/100:(+S.gasto||0),m=+S.guardo||0,meta=g*S.meses;document.querySelectorAll('#mseg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.m===S.meses));$('gw').hidden=!!re;$('rw').classList.toggle('one',!!re);$('rinfo').textContent=re?'Seus essenciais reais: '+RC(re.v)+' por mês ('+re.txt+').':'Ainda não há despesas essenciais lançadas. Lance na aba Gastos para usar valores reais ou digite abaixo.';setv($('gasto'),S.gasto);setv($('guardo'),S.guardo);num($('meta'),meta);
+const p=$('prazo');if(!g)p.textContent='Lance despesas essenciais na aba Gastos ou digite seu gasto essencial.';else if(!m)p.textContent='Digite quanto consegue guardar por mês.';else{const n=Math.ceil(meta/m);p.textContent='Guardando '+R(m)+' por mês, você chega lá em '+n+(n===1?' mês':' meses')+(n>=12?' (cerca de '+(n/12).toFixed(1).replace('.',',')+' anos).':'.')}}
 const flag=(el,bad)=>{el.setAttribute('aria-invalid',bad);let m=el._m;if(!m){m=el._m=document.createElement('p');m.className='mut er';m.setAttribute('role','alert');el.after(m)}m.textContent=bad?'Digite um valor entre 0 e 1.000.000.000.':''};
 const on=(id,k,f)=>$(id).addEventListener('input',e=>{const el=e.target;let v;
 if(['renda','gasto','guardo'].includes(k)){v=money(el.value);flag(el,v===null);if(v===null)v=''}
 else v=int(el.value,k==='meses'?3:0,k==='meses'?12:100,S[k]);
 S[k]=v;save();f()});
-on('renda','renda',mapa2);on('ess','ess',mapa2);on('des','des',mapa2);on('gasto','gasto',res);on('guardo','guardo',res);on('meses','meses',res);
+on('renda','renda',mapa2);on('ess','ess',mapa2);on('des','des',mapa2);on('gasto','gasto',res);on('guardo','guardo',res);document.querySelectorAll('#mseg button').forEach(b=>b.onclick=()=>{S.meses=+b.dataset.m;save();res()});
 $('reset').onclick=()=>{S.ess=50;S.des=30;save();mapa2()};
 document.querySelectorAll('section').forEach(s=>s.addEventListener('pointermove',e=>{const r=s.getBoundingClientRect();s.style.setProperty('--mx',e.clientX-r.left+'px');s.style.setProperty('--my',e.clientY-r.top+'px')}));
-coins();res();
+coins();
+$('cr').onclick=()=>{if(!S.days.length)return;if(CONF){S.days=[];CONF=false;save();coins()}else{CONF=true;coins();setTimeout(()=>{if(CONF){CONF=false;coins()}},4000)}};
 const MN=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const RC=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const ymL=y=>MN[+y.slice(5)-1]+' de '+y.slice(0,4);
@@ -205,6 +238,23 @@ function totals(y){let r=0,d=0;mon(y).forEach(x=>x.t==='r'?r+=x.v:d+=x.v);return
 let YM=ymd().slice(0,7),TY='d',ED=null,DEL=null;
 function setType(t){TY=t;$('tD').setAttribute('aria-pressed',t==='d');$('tR').setAttribute('aria-pressed',t==='r');const s=$('fc'),cur=s.value;s.textContent='';S.cats.filter(c=>c.t===t).forEach(c=>{const o=mk('option',0,c.n);o.value=c.id;s.appendChild(o)});if([...s.options].some(o=>o.value===cur))s.value=cur}
 function resetForm(){ED=null;$('fv').value='';$('fn').value='';$('fd').value=ymd();$('fv').removeAttribute('aria-invalid');$('fe').textContent='';$('fs').textContent='Adicionar';$('fcan').hidden=true}
+function painel(y){const box=$('pn'),T=totals(y),tx=mon(y);box.textContent='';
+const hb=(label,val,max,color,txt)=>{const w=mk('div','hb'),tr=mk('div','tr'),fl=mk('div','fl');fl.style.width=(max>0&&val>0?Math.max(2,val/max*100):0)+'%';fl.style.background=color;tr.appendChild(fl);w.append(mk('span','lb',label),mk('span','vv',txt||RC(val)),tr);box.appendChild(w)};
+box.appendChild(mk('h3',0,'Resumo do mês'));
+if(!tx.length)box.appendChild(mk('p','mut','Sem lançamentos neste mês. O resumo aparece quando você adicionar o primeiro.'));
+else{const mx=Math.max(T.r,T.d);hb('Receitas',T.r,mx,'var(--gr)');hb('Despesas',T.d,mx,'var(--pk)');
+const byc={};tx.forEach(x=>{if(x.t==='d')byc[x.c]=(byc[x.c]||0)+x.v});const ent=Object.entries(byc).sort((a,b)=>b[1]-a[1]);
+if(ent.length){box.appendChild(mk('h3',0,'Para onde foi o dinheiro'));ent.forEach(([id,v])=>{const k=S.cats.find(c=>c.id===id);hb(cname(id),v,ent[0][1],k&&k.g==='e'?'var(--bl)':'var(--pk)',RC(v)+' · '+Math.round(v/T.d*100)+'%')});box.appendChild(mk('p','mut','Azul: essenciais · Rosa: desejos'))}
+const now=ymd(),isCur=y===now.slice(0,7),dias=isCur?+now.slice(8):new Date(+y.slice(0,4),+y.slice(5),0).getDate(),rs=mk('div','rs'),L=[];
+if(T.r>0){L.push('Você gastou '+Math.round(T.d/T.r*100)+'% do que recebeu.');L.push(T.s>=0?'Sobraram '+RC(T.s)+' no mês.':'Faltaram '+RC(-T.s)+': as despesas passaram das receitas.')}else L.push('Nenhuma receita lançada neste mês.');
+if(ent.length)L.push('Maior gasto: '+cname(ent[0][0])+' ('+RC(ent[0][1])+').');
+if(T.d>0)L.push('Média de '+RC(Math.round(T.d/dias))+' por dia'+(isCur?' até hoje.':'.'));
+L.forEach(t=>rs.appendChild(mk('p',0,t)));box.append(mk('h3',0,'Leitura do mês'),rs)}
+if(S.tx.length){const ms=[-5,-4,-3,-2,-1,0].map(n=>shift(y,n)),ts=ms.map(totals),mx2=Math.max(1,...ts.flatMap(t=>[t.r,t.d]));
+box.appendChild(mk('h3',0,'Últimos 6 meses'));
+const mc=mk('div','mc');mc.setAttribute('role','img');mc.setAttribute('aria-label','Receitas e despesas por mês: '+ms.map((m,i)=>MN[+m.slice(5)-1]+', receitas '+RC(ts[i].r)+', despesas '+RC(ts[i].d)).join('; '));
+ms.forEach((m,i)=>{const col=mk('div','col'+(m===y?' cur':'')),pr=mk('div','pr'),r=mk('i','r'),d=mk('i','d');r.style.height=Math.round(ts[i].r/mx2*110)+'px';d.style.height=Math.round(ts[i].d/mx2*110)+'px';r.title='Receitas '+RC(ts[i].r);d.title='Despesas '+RC(ts[i].d);pr.append(r,d);col.append(pr,mk('span',0,MN[+m.slice(5)-1].slice(0,3)));mc.appendChild(col)});
+box.append(mc,mk('p','mut','Verde: receitas · Rosa: despesas'))}}
 function gastos(){const T=totals(YM);$('mlab').textContent=ymL(YM);$('gR').textContent=RC(T.r);$('gD').textContent=RC(T.d);$('gS').textContent=RC(T.s);$('gS').className=T.s<0?'neg':'pos';
 const ul=$('txl');ul.textContent='';if(!mon(YM).length)ul.appendChild(mk('li','mut','Nenhum lançamento neste mês. Adicione o primeiro acima.'));
 mon(YM).sort((a,b)=>b.d.localeCompare(a.d)).forEach(x=>{const li=mk('li'),l=mk('div'),ac=mk('div','ac'),ed=mk('button','link','Editar'),de=mk('button','link dg',DEL===x.id?'Confirmar exclusão':'Excluir');ed.type=de.type='button';
@@ -213,7 +263,7 @@ ed.onclick=()=>{ED=x.id;DEL=null;setType(x.t);$('fv').value=(x.v/100).toFixed(2)
 de.onclick=()=>{if(DEL===x.id){S.tx=S.tx.filter(z=>z.id!==x.id);DEL=null;if(ED===x.id)resetForm();save();gastos()}else{DEL=x.id;gastos();setTimeout(()=>{if(DEL===x.id){DEL=null;gastos()}},4000)}};
 ac.append(ed,de);li.append(l,mk('span','v '+(x.t==='r'?'pos':'neg'),(x.t==='r'?'+ ':'− ')+RC(x.v)),ac);ul.appendChild(li)});
 const H=$('hist');H.textContent='';const ms=[...new Set(S.tx.map(x=>x.d.slice(0,7)))].sort().reverse();if(!ms.length)H.appendChild(mk('p','mut','O histórico aparece quando houver lançamentos.'));
-ms.forEach(m=>{const b=mk('button'),t=totals(m);b.type='button';b.append(mk('span',0,ymL(m)),mk('span',t.s<0?'neg':'pos',RC(t.s)));if(m===YM)b.setAttribute('aria-current','true');b.onclick=()=>{YM=m;gastos()};H.appendChild(b)});mapa2()}
+ms.forEach(m=>{const b=mk('button'),t=totals(m);b.type='button';b.append(mk('span',0,ymL(m)),mk('span',t.s<0?'neg':'pos',RC(t.s)));if(m===YM)b.setAttribute('aria-current','true');b.onclick=()=>{YM=m;gastos()};H.appendChild(b)});painel(YM);res();mapa2()}
 $('tD').onclick=()=>setType('d');$('tR').onclick=()=>setType('r');$('fcan').onclick=resetForm;
 $('pm').onclick=()=>{YM=shift(YM,-1);gastos()};$('nm').onclick=()=>{YM=shift(YM,1);gastos()};
 $('fv').addEventListener('input',()=>{$('fv').removeAttribute('aria-invalid');$('fe').textContent=''});
@@ -249,7 +299,20 @@ if(S.cats.some(k=>k.t==='d'&&k.n.toLowerCase()===v.toLowerCase())){er.textConten
 if(S.cats.filter(k=>k.t==='d').length>=20){er.textContent='Limite de 20 categorias de despesa.';return}
 S.cats.push({id:'c'+uid().slice(0,10),n:v,t:'d',g:$('ng').value==='e'?'e':'d'});$('nc').value='';er.textContent='';catSave()};
 setType('d');resetForm();gastos();
-const TABS=['mapa','gastos','desafio','reserva'];
+const bmsg=(t,bad)=>{const e=$('bm');e.textContent=t;e.className=bad?'mut er':'mut'};
+function noImp(clr){PEND=null;$('bc').hidden=$('bn').hidden=true;if(clr)$('bi').value=''}
+$('bx').onclick=()=>{try{const url=URL.createObjectURL(new Blob([JSON.stringify({app:'dinheiro-na-mao',exportado:new Date().toISOString(),...S},null,1)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='dinheiro-na-mao-backup-'+ymd()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);bmsg('Backup exportado: '+S.tx.length+' lançamentos e o desafio das moedas. Guarde o arquivo em um lugar seguro.')}catch(e){bmsg('Não foi possível gerar o arquivo neste navegador.',1)}};
+$('bi').onchange=e=>{const f=e.target.files[0];noImp(false);bmsg('');if(!f)return;if(f.size>5e6){bmsg('Arquivo grande demais (máximo 5 MB).',1);return}
+const r=new FileReader();r.onerror=()=>bmsg('Não foi possível ler o arquivo.',1);
+r.onload=()=>{let o;try{o=JSON.parse(r.result)}catch(_){bmsg('Esse arquivo não é um backup válido.',1);return}
+if(!o||typeof o!=='object'||Array.isArray(o)||!(Array.isArray(o.tx)||Array.isArray(o.cats)||Array.isArray(o.days))){bmsg('Esse arquivo não parece ser um backup do Dinheiro na Mão.',1);return}
+PEND=sanitize(o);const bad=(Array.isArray(o.tx)?o.tx.length:0)-PEND.tx.length;
+bmsg('Backup lido: '+PEND.tx.length+' lançamentos, '+PEND.cats.filter(c=>c.t==='d').length+' categorias de despesa e '+PEND.days.length+' dias do desafio.'+(bad>0?' '+bad+' item(ns) inválido(s) serão ignorados.':'')+' Importar substitui seus dados atuais.');$('bc').hidden=$('bn').hidden=false};
+r.readAsText(f)};
+$('bn').onclick=()=>{noImp(true);bmsg('Importação cancelada.')};
+$('bc').onclick=()=>{if(!PEND)return;try{localStorage.setItem('dnm_bak_antes_import',JSON.stringify(S))}catch(_){}
+S=PEND;save();YM=ymd().slice(0,7);ED=DEL=DELC=null;setType('d');resetForm();coins();gastos();noImp(true);bmsg('Backup importado com sucesso.')};
+const TABS=['mapa','gastos','desafio','reserva','backup'];
 function tab(){const h=location.hash.slice(1),t=TABS.includes(h)?h:'mapa';TABS.forEach(n=>{$(n).hidden=n!==t});document.querySelectorAll('.tabs a').forEach(a=>{a.getAttribute('href')==='#'+t?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current')})}
 addEventListener('hashchange',()=>{tab();scrollTo(0,0)});tab();
 const cv=$('fx'),cx=cv.getContext('2d');let W,H,P=[];
